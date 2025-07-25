@@ -105,6 +105,27 @@ class MultiImageObsEncoder(ModuleAttrMixin):
                 if imagenet_norm:
                     this_normalizer = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                                                        std=[0.229, 0.224, 0.225])
+                
+                # Auto-detect CLIP model and apply CLIP preprocessing
+                model_to_check = this_model if this_model is not None else (rgb_model if not isinstance(rgb_model, dict) else None)
+                if model_to_check is not None and hasattr(model_to_check, 'visual'):
+                    # This is a CLIP model, apply CLIP preprocessing
+                    # Determine input size based on CLIP model
+                    if resize_shape is None:
+                        # Check if it's a 336px model
+                        model_name = getattr(model_to_check, 'name', '')
+                        if '336px' in model_name:
+                            clip_size = 336
+                        else:
+                            clip_size = 224
+                        this_resizer = torchvision.transforms.Resize(size=(clip_size, clip_size))
+                        input_shape = (shape[0], clip_size, clip_size)
+                    if crop_shape is None and not random_crop:
+                        # For CLIP, we typically don't need additional cropping if already resized
+                        this_randomizer = nn.Identity()
+                    # Force ImageNet normalization for CLIP
+                    this_normalizer = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                                       std=[0.229, 0.224, 0.225])
 
                 this_transform = nn.Sequential(this_resizer, this_randomizer, this_normalizer)
                 key_transform_map[key] = this_transform

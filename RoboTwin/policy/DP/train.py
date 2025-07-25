@@ -20,7 +20,7 @@ import os
 current_file_path = os.path.abspath(__file__)
 parent_directory = os.path.dirname(current_file_path)
 
-
+# 获取相机配置
 def get_camera_config(camera_type):
     camera_config_path = os.path.join(parent_directory, "../../task_config/_camera_config.yml")
 
@@ -36,11 +36,11 @@ def get_camera_config(camera_type):
 # allows arbitrary python code execution in configs using the ${eval:''} resolver
 OmegaConf.register_new_resolver("eval", eval, replace=True)
 
-
 @hydra.main(
     version_base=None,
     config_path=str(pathlib.Path(__file__).parent.joinpath("diffusion_policy", "config")),
 )
+# 处理配置文件，并执行相应的操作，最后返回配置文件
 def main(cfg: OmegaConf):
     # resolve immediately so all the ${now:} resolvers
     # will use the same time.

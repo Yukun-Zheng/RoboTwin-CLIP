@@ -13,8 +13,8 @@ from diffusion_policy.env_runner.dp_runner import DPRunner
 
 class DP:
 
-    def __init__(self, ckpt_file: str, n_obs_steps, n_action_steps):
-        self.policy = self.get_policy(ckpt_file, None, "cuda:0")
+    def __init__(self, ckpt_file: str, n_obs_steps, n_action_steps, clip_model=None):
+        self.policy = self.get_policy(ckpt_file, None, "cuda:0", clip_model)
         self.runner = DPRunner(n_obs_steps=n_obs_steps, n_action_steps=n_obs_steps)
 
     def update_obs(self, observation):
@@ -30,10 +30,16 @@ class DP:
     def get_last_obs(self):
         return self.runner.obs[-1]
 
-    def get_policy(self, checkpoint, output_dir, device):
+    def get_policy(self, checkpoint, output_dir, device, clip_model=None):
         # load checkpoint
         payload = torch.load(open(checkpoint, "rb"), pickle_module=dill)
         cfg = payload["cfg"]
+        
+        # Override CLIP model name if provided
+        if clip_model and hasattr(cfg, 'policy') and hasattr(cfg.policy, 'obs_encoder') and hasattr(cfg.policy.obs_encoder, 'rgb_model'):
+            cfg.policy.obs_encoder.rgb_model.name = clip_model
+            print(f"\033[33mOverriding CLIP model to: {clip_model}\033[0m")
+        
         cls = hydra.utils.get_class(cfg._target_)
         workspace = cls(cfg, output_dir=output_dir)
         workspace: RobotWorkspace
