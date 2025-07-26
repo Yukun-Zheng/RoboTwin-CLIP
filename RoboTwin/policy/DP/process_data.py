@@ -9,13 +9,7 @@ import yaml
 import cv2
 import h5py
 
-# 将HDF5文件加载为numpy数组，具体返回有：
-# left_gripper: 6个动作，左臂的6个关节动作
-# left_arm: 7个动作，左臂的7个关节动作
-# right_gripper: 6个动作，右臂的6个关节动作
-# right_arm: 7个动作，右臂的7个关节动作
-# vector: 1个动作，关节动作的向量表示
-# image_dict: 4个动作，4个摄像头拍摄的图像
+
 def load_hdf5(dataset_path):
     if not os.path.isfile(dataset_path):
         print(f"Dataset does not exist at \n{dataset_path}\n")
@@ -37,8 +31,7 @@ def load_hdf5(dataset_path):
 
     return left_gripper, left_arm, right_gripper, right_arm, vector, image_dict
 
-# 处理多个episode的数据
-# 将HDF5文件中的数据转换为zarr格式，并保存
+
 def main():
     parser = argparse.ArgumentParser(description="Process some episodes.")
     parser.add_argument(
