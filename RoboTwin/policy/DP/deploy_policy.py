@@ -19,9 +19,20 @@ def get_model(usr_args):
     ckpt_file = f"./policy/DP/checkpoints/{usr_args['task_name']}-{usr_args['ckpt_setting']}-{usr_args['expert_data_num']}-{usr_args['seed']}/{usr_args['checkpoint_num']}.ckpt"
     action_dim = usr_args['left_arm_dim'] + usr_args['right_arm_dim'] + 2 # 2 gripper
     
-    load_config_path = f'./policy/DP/diffusion_policy/config/robot_dp_{action_dim}.yaml'
+    # 检查是否使用CLIP配置
+    use_clip = usr_args.get('clip_model_name') is not None
+    if use_clip:
+        load_config_path = f'./policy/DP/diffusion_policy/config/robot_dp_clip_{action_dim}.yaml'
+    else:
+        load_config_path = f'./policy/DP/diffusion_policy/config/robot_dp_{action_dim}.yaml'
+    
     with open(load_config_path, "r", encoding="utf-8") as f:
         model_training_config = yaml.safe_load(f)
+    
+    # 如果使用CLIP，更新配置中的CLIP参数
+    if use_clip:
+        model_training_config['clip_model_name'] = usr_args.get('clip_model_name', 'ViT-B/32')
+        model_training_config['pca_dim'] = usr_args.get('pca_dim', 8)
     
     n_obs_steps = model_training_config['n_obs_steps']
     n_action_steps = model_training_config['n_action_steps']
